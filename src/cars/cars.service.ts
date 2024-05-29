@@ -1,8 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 
 import { Car } from './interfaces/car.interface';
-import { CreateCarDto } from './dtos';
+import { CreateCarDto, UpdateCarDto } from './dtos';
 
 @Injectable()
 export class CarsService {
@@ -35,7 +35,7 @@ export class CarsService {
     return car;
   }
 
-  create(createCarDto: CreateCarDto): Car {
+  create( createCarDto: CreateCarDto ): Car {
     const newCar: Car = {
       id: uuid(),
       ...createCarDto
@@ -44,5 +44,24 @@ export class CarsService {
     this.cars.push(newCar);
 
     return newCar;
+  }
+
+  update( id: string, updateCarDto: UpdateCarDto ): Car {
+    let carDB = this.findOneById( id );
+        
+    if( updateCarDto.id && updateCarDto.id !== id ) {
+      throw new BadRequestException(`Route id and body id do not match`);
+    }
+
+    this.cars = this.cars.map( car => {
+      if ( car.id === id ) {
+        carDB = { ...carDB, ...updateCarDto, id }
+        return carDB;
+      }
+
+      return car;
+    });
+    
+    return carDB;
   }
 }
